@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from cryptography.fernet import Fernet
 from hashlib import sha256
 from time import sleep
 #import pyautogui
@@ -30,48 +30,60 @@ class Session:
     def __init__(self, name, password):
         self.name = name
         self.password = password
-        self.vault = b'e30='
+        self.vault = 'e30='
+        self.keys = []
         self.on_session = False
+        self.hash_id = Fernet.generate_key()
         print("Session created!")
     
-    class Encryption():
         
-        def decrypt_bytes_to_dict(self, bytes):
-            msg_bytes = base64.b64decode(bytes)
-            ascii_msg = msg_bytes.decode('ascii')
-            ascii_msg = ascii_msg.replace("'", "\"") # Double quotes is standard format for json
-            output_dict = json.loads(ascii_msg) # Json library convert stirng dictionary to real dictionary type.
-            return output_dict
-    
+    class Encryption:
         def encrypt_dict_to_byte(self, dict):
-            message = str(dict)
-            ascii_message = message.encode('ascii')
-            output_byte = base64.b64encode(ascii_message)
-            return output_byte
+            stringed_dic = str(dict)
+            encoded_dic = stringed_dic.encode('utf-8')
+            byted_dic = base64.b64encode(encoded_dic)
+            return byted_dic
         
-        def encrypt_string(self, string):
-            return string
+        def decrypt_bytes_to_dict(self, bites):
+            dic_bytes = base64.b64decode(bites)
+            ascii_dic = dic_bytes.decode('utf-8')
+            ascii_dic = ascii_dic.replace("'", "\"") # Double quotes is standard format for json
+            output_dic = json.loads(ascii_dic) # Json library convert stirng dictionary to real dictionary type.
+            return output_dic
         
-        def decrypt_string(self, string):
-            return string
+        def encrypt_string(self, string, hash_id):
+            encoded_string = string.encode('utf-8')
+            f = Fernet(hash_id)
+            encrypted_message = f.encrypt(encoded_string).decode()
+            return encrypted_message
+
+        def decrypt_string(self, string, hash_id):
+            encrypt = string.encode('utf-8')
+            f = Fernet(hash_id)
+            decrypted_message = f.decrypt(encrypt)
+            return decrypted_message.decode('utf-8')
     
-    def add_entry(self, site, password):
+    def add_entry(self, site, password, hash_id):
         if self.on_session:
             encryption = self.Encryption()
-            password = encryption.encrypt_string(password)
+            password = encryption.encrypt_string(password, hash_id)
             dictionary = encryption.decrypt_bytes_to_dict(self.vault)
-            print(dictionary)
-            print(password)
-            print(site)
             dictionary[site] = password
             self.vault = encryption.encrypt_dict_to_byte(dictionary)
+            self.keys.append(site)
         print('Session is not on.')     
         
-    def retrieve_entry(self, site):
-        pass
-    
+    def retrieve_entry(self, site, hash_id):
+        if self.on_session:
+            encryption = self.Encryption()
+            dictionary = encryption.decrypt_bytes_to_dict(self.vault)
+            password = dictionary[site]
+            password = encryption.decrypt_string(password, hash_id)
+            return password
+            
     def delete_entry(self, site):
-        pass
+        if self.on_session:
+            pass
 
 def hash_function(string):
     h = sha256(string.encode('utf-8'))
@@ -86,6 +98,11 @@ def check_session():
         print("\nNew session needed.")
         create_session()
     return os.listdir(sessions_directory)
+
+def save_session(session):
+    session_file = open(sessions_directory + session.name, "wb")
+    pickle.dump(session, session_file)
+    session_file.close()
 
 def create_session():
     print("What shall your session name be?")
@@ -120,10 +137,7 @@ def load_session(session_name):
         else:
             print('Access denied.')
                 
-def save_session(session):
-    session_file = open(sessions_directory + session.name, "wb")
-    pickle.dump(session, session_file)
-    session_file.close()
+
 
 def run():
     print("\nWelcome to...\n" + bar + logo + bar)
@@ -139,9 +153,9 @@ def run():
         print("Type CREATE to create a new session or <THE NAME> one of the sessions below to open it.")
         print(", ".join(sessions))
         first_input = input(">: ")
-        if first_input == "CREATE":
+        if first_input.upper() == "CREATE":
             create_session()
-        if first_input == "EXIT":
+        if first_input.upper() == "EXIT":
             print("Terminating...")
             return None
         if first_input in sessions:
@@ -152,21 +166,29 @@ def run():
     while session.on_session:
         print("Type ADD to add a new entry to your vault.")
         print("Type <NAME> of your site below to retrieve a password.")
+        print("Type OPEN to open your vault.")
         print("Type EXIT to close your vault.")
         second_input = input(">: ")
-        if second_input == "EXIT":
+        if second_input.upper() == "EXIT":
             session.on_session = False
             save_session(session)
             print("Terminating...")
             break
-        if second_input == 'ADD':
+        if second_input.upper() == 'ADD':
             print("What is the site you're saving the password from?")
             entry_site = input(">: ")
             print("Now tell me the password.")
             entry_password = input(">: ")
-            session.add_entry(entry_site, entry_password)
+            session.add_entry(entry_site, entry_password, session.hash_id)
+            save_session(session)
+        if second_input.upper() == 'OPEN':
+            print("Which site are you retrieving the password from?")
+
+            entry_site = input(">:")
+            print("Your password is:")
+            print(session.retrieve_entry(entry_site, session.hash_id))
             
-#run()
+run()
 
 
 
