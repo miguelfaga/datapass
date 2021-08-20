@@ -100,6 +100,7 @@ def check_session():
     return os.listdir(sessions_directory)
 
 def save_session(session):
+    #session = bin(session)
     session_file = open(sessions_directory + session.name, "wb")
     pickle.dump(session, session_file)
     session_file.close()
@@ -137,7 +138,6 @@ def load_session(session_name):
         else:
             print('Access denied.')
                 
-
 
 def run():
     print("\nWelcome to...\n" + bar + logo + bar)
