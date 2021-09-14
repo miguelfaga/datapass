@@ -1,3 +1,3 @@
 # datapass
 
-<img src="graph">
+<img src="graph.png">
