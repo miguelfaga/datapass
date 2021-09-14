@@ -26,8 +26,29 @@ bar = """===================================================================="""
 sessions_directory = "data/"
 
 class Session:
+    '''Datapass Session.
     
+    Attributes:
+    -----------
+    name : str
+           Session name.
+    password : str
+           Encrypted password.
+        vault : binary 
+            Contains a vault (dict) in binary.
+        keys : list
+            Sites' list.
+        on_session : bool
+            Session control variable.
+        '''
+        
+        #--------------------------------------------------------------------
+        #Constructors
+        
     def __init__(self, name, password):
+        '''
+        Initiate a session.
+        '''
         self.name = name
         self.password = password
         self.vault = 'e30='
@@ -38,13 +59,19 @@ class Session:
     
         
     class Encryption:
-        def encrypt_dict_to_byte(self, dict):
-            stringed_dic = str(dict)
+        '''
+        Nested encryption class.
+        '''
+        
+        def encrypt_dict_to_byte(self, dic):
+            #Translates dictionary into bytes
+            stringed_dic = str(dic)
             encoded_dic = stringed_dic.encode('utf-8')
             byted_dic = base64.b64encode(encoded_dic)
             return byted_dic
         
         def decrypt_bytes_to_dict(self, bites):
+            #Translates bytes into dictionary
             dic_bytes = base64.b64decode(bites)
             ascii_dic = dic_bytes.decode('utf-8')
             ascii_dic = ascii_dic.replace("'", "\"") # Double quotes is standard format for json
@@ -52,18 +79,23 @@ class Session:
             return output_dic
         
         def encrypt_string(self, string, hash_id):
+            #Encrypts a given string
             encoded_string = string.encode('utf-8')
             f = Fernet(hash_id)
             encrypted_message = f.encrypt(encoded_string).decode()
             return encrypted_message
 
         def decrypt_string(self, string, hash_id):
+            #Decrypts a string
             encrypt = string.encode('utf-8')
             f = Fernet(hash_id)
             decrypted_message = f.decrypt(encrypt)
             return decrypted_message.decode('utf-8')
     
     def add_entry(self, site, password, hash_id):
+        '''
+        Adds a new entry to the session.
+        '''
         if self.on_session:
             encryption = self.Encryption()
             password = encryption.encrypt_string(password, hash_id)
@@ -74,6 +106,9 @@ class Session:
         print('Session is not on.')     
         
     def retrieve_entry(self, site, hash_id):
+        '''
+        Retrieves an entry in the session.
+        '''
         if self.on_session:
             encryption = self.Encryption()
             dictionary = encryption.decrypt_bytes_to_dict(self.vault)
@@ -82,16 +117,25 @@ class Session:
             return password
             
     def delete_entry(self, site):
+        '''
+        Deletes an entry in the session.
+        '''
         if self.on_session:
             pass
 
 def hash_function(string):
+    '''
+    Hash function to confirm password input.
+    '''
     h = sha256(string.encode('utf-8'))
     hashed = h.hexdigest()
     return hashed
 
 def check_session():
-
+    '''
+    List all saved sessions in the program.
+    If the list is empty, calls create_function.
+    '''
     if not os.path.exists(sessions_directory):
         os.mkdir(sessions_directory)
     if os.listdir(sessions_directory) == []:
@@ -100,12 +144,17 @@ def check_session():
     return os.listdir(sessions_directory)
 
 def save_session(session):
-    #session = bin(session)
+    '''
+    Session autosafe.
+    '''
     session_file = open(sessions_directory + session.name, "wb")
     pickle.dump(session, session_file)
     session_file.close()
 
 def create_session():
+    '''
+    Deletes a saved session in the program.
+    '''
     print("What shall your session name be?")
     session_name = input(">: ")
     print("Creating new session: " + session_name)
@@ -125,12 +174,15 @@ def create_session():
         return new_session
 
 def load_session(session_name):
+    '''
+    Load a saved session in the program.
+    '''
     session_file = open(sessions_directory + session_name, "rb")
     session = pickle.load(session_file)
     session_file.close()
     while not session.on_session:
         print("Would you please confirm the master password to this session?")
-        password = input(">: ")
+        password = getpass.getpass(prompt = ">: ")
         password = hash_function(password)
         if session.password == password:
             print('Access granted')
@@ -140,6 +192,9 @@ def load_session(session_name):
                 
 
 def run():
+    '''
+    Runs DATAPASS. Should this be a different file?
+    '''
     print("\nWelcome to...\n" + bar + logo + bar)
     print("\nYour very own password management system.")
     sleep(1)
@@ -167,7 +222,8 @@ def run():
         print("Type ADD to add a new entry to your vault.")
         print("Type <NAME> of your site below to retrieve a password.")
         print("Type OPEN to open your vault.")
-        print("Type EXIT to close your vault.")
+        print("Type EXIT to close your vault and terminate.")
+        print(session.keys)
         second_input = input(">: ")
         if second_input.upper() == "EXIT":
             session.on_session = False
@@ -183,7 +239,7 @@ def run():
             save_session(session)
         if second_input.upper() == 'OPEN':
             print("Which site are you retrieving the password from?")
-
+            print(session.keys)
             entry_site = input(">:")
             print("Your password is:")
             print(session.retrieve_entry(entry_site, session.hash_id))
@@ -191,13 +247,11 @@ def run():
 run()
 
 
+#tratar exceções:
+#   senha errada para entrar na sessão no loop
+#   
 
-
-#check and list password entries in session
+#check entries in session
 #create entry
 #edit entry
 #delete entry
-#retrieve password
-
-
-#Access granted
