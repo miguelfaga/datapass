@@ -185,9 +185,11 @@ def load_session(session_name):
         password = getpass.getpass(prompt = ">: ")
         password = hash_function(password)
         if session.password == password:
+            sleep(1)
             print('Access granted')
             return session
         else:
+            sleep(1)
             print('Access denied.')
             break
                 
@@ -202,11 +204,12 @@ def run():
     print("...")
     sleep(2)
     print("Who could tell?\n")
+    sleep(1)
     print(bar)
     while True:
         sessions = check_session()
         print(bar)
-        print("Type CREATE to create a new session or <THE NAME> one of the sessions below to open it.")
+        print("\nType CREATE to create a new session or <THE NAME> one of the sessions below to open it.")
         print(", ".join(sessions))
         first_input = input(">: ")
         if first_input.upper() == "CREATE":
@@ -216,19 +219,21 @@ def run():
             return None
         if first_input in sessions:
             session = load_session(first_input)
-            if session is not None:
+            if session == None:
+                print("Let's try again, shall we?")
+                sleep(1)
+            else:
                 session.on_session = True
                 print(f"SESSION FOR {session.name} STARTED!")
                 break
-            else:
-                print("Let's try again, shall we?")
+
 
     while session.on_session:
-        print("Type ADD to add a new entry to your vault.")
+        print("\nType ADD to add a new entry to your vault.")
         print("Type <NAME> of your site below to retrieve a password.")
         print("Type OPEN to open your vault.")
         print("Type EXIT to close your vault and terminate.")
-        print(session.keys)
+        #print(session.keys)
         second_input = input(">: ")
         if second_input.upper() == "EXIT":
             session.on_session = False
@@ -243,11 +248,18 @@ def run():
             session.add_entry(entry_site, entry_password, session.hash_id)
             save_session(session)
         if second_input.upper() == 'OPEN':
-            print("Which site are you retrieving the password from?")
-            print(session.keys)
+            print("\nWhich site are you retrieving the password from?")
+            pannel = ""
+            for key in session.keys:
+                button = "  [ "+ key + " ]  "
+                if session.keys.index(key) % 2 != 0:
+                    button +="\n"
+                pannel += button
+            print(pannel)
             entry_site = input(">:")
-            print("Your password is:")
+            print("\nYour password is:")
             print(session.retrieve_entry(entry_site, session.hash_id))
+            sleep(2)
             
 run()
 
