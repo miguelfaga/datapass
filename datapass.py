@@ -75,7 +75,7 @@ class Session:
             dic_bytes = base64.b64decode(bites)
             ascii_dic = dic_bytes.decode('utf-8')
             ascii_dic = ascii_dic.replace("'", "\"") # Double quotes is standard format for json
-            output_dic = json.loads(ascii_dic) # Json library convert stirng dictionary to real dictionary type.
+            output_dic = json.loads(ascii_dic) # Json library convert string dictionary to real dictionary type.
             return output_dic
         
         def encrypt_string(self, string, hash_id):
@@ -145,7 +145,7 @@ def check_session():
 
 def save_session(session):
     '''
-    Session autosafe.
+    Session autosave.
     '''
     session_file = open(sessions_directory + session.name, "wb")
     pickle.dump(session, session_file)
