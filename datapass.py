@@ -131,6 +131,19 @@ def hash_function(string):
     hashed = h.hexdigest()
     return hashed
 
+def button_pannel(button_list):
+    '''
+    Receives a list with button labels.
+    Returns a button string ready to print.
+    '''
+    pannel = ""
+    for label in button_list:
+        button = "  [{: ^10}]  ".format(label)
+        if button_list.index(label) % 2 != 0:
+            button +="\n"
+        pannel += button
+    return pannel
+
 def check_session():
     '''
     List all saved sessions in the program.
@@ -210,7 +223,9 @@ def run():
         sessions = check_session()
         print(bar)
         print("\nType CREATE to create a new session or <THE NAME> one of the sessions below to open it.")
-        print(", ".join(sessions))
+        pannel = button_pannel(sessions)
+        print(pannel)
+        #print(", ".join(sessions))
         first_input = input(">: ")
         if first_input.upper() == "CREATE":
             create_session()
@@ -247,12 +262,7 @@ def run():
             save_session(session)
         if second_input.upper() == 'OPEN':
             print("\nWhich site are you retrieving the password from?")
-            pannel = ""
-            for key in session.keys:
-                button = "  [{: ^10}]  ".format(key)
-                if session.keys.index(key) % 2 != 0:
-                    button +="\n"
-                pannel += button
+            pannel = button_pannel(session.keys)
             print(pannel)
             entry_site = input(">:")
             if entry_site in session.keys:
@@ -265,13 +275,9 @@ def run():
 if __name__ == "__main__":
     try:
         run()
-    except:
-        print("AI CARALHO") 
+    except Exception: 
+        traceback.print_exc()
 
-
-#tratar exceções:
-#   senha errada para entrar na sessão no loop
-#   
 
 #check entries in session
 #create entry
