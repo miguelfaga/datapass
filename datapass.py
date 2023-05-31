@@ -227,10 +227,8 @@ def run():
                 print(f"SESSION FOR {session.name} STARTED!")
                 break
 
-
     while session.on_session:
         print("\nType ADD to add a new entry to your vault.")
-        print("Type <NAME> of your site below to retrieve a password.")
         print("Type OPEN to open your vault.")
         print("Type EXIT to close your vault and terminate.")
         #print(session.keys)
@@ -251,17 +249,24 @@ def run():
             print("\nWhich site are you retrieving the password from?")
             pannel = ""
             for key in session.keys:
-                button = "  [ "+ key + " ]  "
+                button = "  [{: ^10}]  ".format(key)
                 if session.keys.index(key) % 2 != 0:
                     button +="\n"
                 pannel += button
             print(pannel)
             entry_site = input(">:")
-            print("\nYour password is:")
-            print(session.retrieve_entry(entry_site, session.hash_id))
-            sleep(2)
+            if entry_site in session.keys:
+                print("\nYour password is:")
+                print(session.retrieve_entry(entry_site, session.hash_id))
+                sleep(2)
+            else:
+                print("Try again.")
             
-run()
+if __name__ == "__main__":
+    try:
+        run()
+    except:
+        print("AI CARALHO") 
 
 
 #tratar exceções:
