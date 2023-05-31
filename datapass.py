@@ -125,7 +125,7 @@ class Session:
 
 def hash_function(string):
     '''
-    Hash function to confirm password input.
+    Hash function converts string to hash to confirm password input.
     '''
     h = sha256(string.encode('utf-8'))
     hashed = h.hexdigest()
@@ -189,6 +189,7 @@ def load_session(session_name):
             return session
         else:
             print('Access denied.')
+            break
                 
 
 def run():
@@ -215,9 +216,13 @@ def run():
             return None
         if first_input in sessions:
             session = load_session(first_input)
-            session.on_session = True
-            print(f"SESSION FOR {session.name} STARTED!")
-            break
+            if session is not None:
+                session.on_session = True
+                print(f"SESSION FOR {session.name} STARTED!")
+                break
+            else:
+                print("Let's try again, shall we?")
+
     while session.on_session:
         print("Type ADD to add a new entry to your vault.")
         print("Type <NAME> of your site below to retrieve a password.")
